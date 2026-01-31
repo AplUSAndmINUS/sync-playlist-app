@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:SyncPlaylistApp.ViewModels"
+             xmlns:models="clr-namespace:SyncPlaylistApp.Models"
+             x:Class="SyncPlaylistApp.Views.MainPage"
+             Title="Sync Playlist App">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            
+            <!-- Header -->
+            <Label Text="Sync Playlist App"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   TextColor="#1E293B"
+                   HorizontalOptions="Center"/>
+
+            <Label Text="Sign in to your music services and sync playlists across platforms"
+                   FontSize="14"
+                   TextColor="#64748B"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+
+            <!-- Authentication Section -->
+            <Frame BackgroundColor="#F8FAFC"
+                   BorderColor="#E2E8F0"
+                   CornerRadius="8"
+                   Padding="20"
+                   HasShadow="False">
+                
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Sign In to Services"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#0F172A"/>
+
+                    <!-- Spotify -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Sign In to Spotify"
+                                Command="{Binding SignInSpotifyCommand}"
+                                BackgroundColor="#1DB954"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="15,10"
+                                WidthRequest="200"/>
+                        <Label Text="✓"
+                               FontSize="24"
+                               TextColor="#10B981"
+                               IsVisible="{Binding IsSpotifyAuthenticated}"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <!-- Apple Music -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Sign In to Apple Music"
+                                Command="{Binding SignInAppleMusicCommand}"
+                                BackgroundColor="#FA243C"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="15,10"
+                                WidthRequest="200"/>
+                        <Label Text="✓"
+                               FontSize="24"
+                               TextColor="#10B981"
+                               IsVisible="{Binding IsAppleMusicAuthenticated}"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <!-- YouTube Music -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Sign In to YouTube Music"
+                                Command="{Binding SignInYouTubeMusicCommand}"
+                                BackgroundColor="#FF0000"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="15,10"
+                                WidthRequest="200"/>
+                        <Label Text="✓"
+                               FontSize="24"
+                               TextColor="#10B981"
+                               IsVisible="{Binding IsYouTubeMusicAuthenticated}"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Source Selection -->
+            <Frame BackgroundColor="#F8FAFC"
+                   BorderColor="#E2E8F0"
+                   CornerRadius="8"
+                   Padding="20"
+                   HasShadow="False">
+                
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Select Source Service"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#0F172A"/>
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Spotify"
+                                Clicked="OnLoadSpotifyPlaylists"
+                                BackgroundColor="#3B82F6"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="15,10"/>
+                        <Button Text="Apple Music"
+                                Clicked="OnLoadAppleMusicPlaylists"
+                                BackgroundColor="#3B82F6"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="15,10"/>
+                        <Button Text="YouTube Music"
+                                Clicked="OnLoadYouTubeMusicPlaylists"
+                                BackgroundColor="#3B82F6"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="15,10"/>
+                    </HorizontalStackLayout>
+
+                    <Label Text="Available Playlists"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="#475569"
+                           Margin="0,10,0,0"/>
+
+                    <CollectionView ItemsSource="{Binding SourcePlaylists}"
+                                    SelectionMode="Single"
+                                    SelectedItem="{Binding SelectedPlaylist}"
+                                    HeightRequest="200">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Playlist">
+                                <Frame BackgroundColor="White"
+                                       BorderColor="#CBD5E1"
+                                       CornerRadius="6"
+                                       Padding="15"
+                                       Margin="0,5"
+                                       HasShadow="False">
+                                    <VerticalStackLayout Spacing="5">
+                                        <Label Text="{Binding Name}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="#1E293B"/>
+                                        <Label Text="{Binding Description}"
+                                               FontSize="12"
+                                               TextColor="#64748B"/>
+                                        <Label>
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0} tracks • from {1}">
+                                                    <Binding Path="TrackCount"/>
+                                                    <Binding Path="Source"/>
+                                                </MultiBinding>
+                                            </Label.Text>
+                                            <Label.TextColor>#94A3B8</Label.TextColor>
+                                            <Label.FontSize>11</Label.FontSize>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Destination Selection -->
+            <Frame BackgroundColor="#F8FAFC"
+                   BorderColor="#E2E8F0"
+                   CornerRadius="8"
+                   Padding="20"
+                   HasShadow="False">
+                
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Select Destination Services"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#0F172A"/>
+
+                    <Label Text="Choose where to sync the playlist"
+                           FontSize="12"
+                           TextColor="#64748B"/>
+
+                    <VerticalStackLayout Spacing="10" x:Name="DestinationCheckboxes">
+                        <HorizontalStackLayout Spacing="10">
+                            <CheckBox x:Name="SpotifyDestCheck" 
+                                     CheckedChanged="OnDestinationChanged"
+                                     Color="#1DB954"/>
+                            <Label Text="Spotify" 
+                                   VerticalOptions="Center"
+                                   TextColor="#334155"/>
+                        </HorizontalStackLayout>
+
+                        <HorizontalStackLayout Spacing="10">
+                            <CheckBox x:Name="AppleMusicDestCheck" 
+                                     CheckedChanged="OnDestinationChanged"
+                                     Color="#FA243C"/>
+                            <Label Text="Apple Music" 
+                                   VerticalOptions="Center"
+                                   TextColor="#334155"/>
+                        </HorizontalStackLayout>
+
+                        <HorizontalStackLayout Spacing="10">
+                            <CheckBox x:Name="YouTubeMusicDestCheck" 
+                                     CheckedChanged="OnDestinationChanged"
+                                     Color="#FF0000"/>
+                            <Label Text="YouTube Music" 
+                                   VerticalOptions="Center"
+                                   TextColor="#334155"/>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Sync Button -->
+            <Button Text="Sync Playlist"
+                    Command="{Binding SyncPlaylistCommand}"
+                    BackgroundColor="#10B981"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    Padding="20"
+                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+            <!-- Status -->
+            <Frame BackgroundColor="#EEF2FF"
+                   BorderColor="#C7D2FE"
+                   CornerRadius="8"
+                   Padding="15"
+                   HasShadow="False"
+                   IsVisible="{Binding SyncStatus, Converter={StaticResource StringNotEmptyConverter}}">
+                <Label Text="{Binding SyncStatus}"
+                       FontSize="14"
+                       TextColor="#4338CA"
+                       HorizontalTextAlignment="Center"/>
+            </Frame>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsRunning="{Binding IsSyncing}"
+                              Color="#3B82F6"
+                              HeightRequest="50"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
