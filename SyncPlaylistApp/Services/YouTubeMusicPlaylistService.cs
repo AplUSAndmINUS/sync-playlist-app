@@ -88,7 +88,7 @@ public class YouTubeMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Creating YouTube Music playlist: {name}");
 
-        return $"youtube_new_playlist_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        return $"youtube_new_playlist_{Guid.NewGuid().ToString("N")[..8]}";
     }
 
     public async Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
@@ -120,7 +120,7 @@ public class YouTubeMusicPlaylistService : IPlaylistService
 
         return new Track
         {
-            Id = $"youtube_found_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+            Id = $"youtube_found_{Guid.NewGuid().ToString("N")[..8]}",
             Name = track.Name,
             Artist = track.Artist,
             Album = track.Album,

@@ -55,6 +55,12 @@ public class PlaylistSyncService
             // Process each track
             var tracksToAdd = new List<Track>();
             
+            // Note: For better performance with large playlists, consider:
+            // 1. Parallel searches: var tasks = sourcePlaylist.Tracks.Select(track => destService.SearchTrackAsync(track));
+            //    var results = await Task.WhenAll(tasks);
+            // 2. Batch API calls where the service supports it
+            // 3. Implement rate limiting to respect API quotas
+            
             foreach (var track in sourcePlaylist.Tracks)
             {
                 try

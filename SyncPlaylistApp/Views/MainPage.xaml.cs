@@ -14,19 +14,22 @@ public partial class MainPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    private async void OnLoadSpotifyPlaylists(object sender, EventArgs e)
+    private void OnLoadSpotifyPlaylists(object sender, EventArgs e)
     {
-        await _viewModel.LoadPlaylistsCommand.Execute(MusicService.Spotify);
+        if (_viewModel.LoadPlaylistsCommand.CanExecute(MusicService.Spotify))
+            _viewModel.LoadPlaylistsCommand.Execute(MusicService.Spotify);
     }
 
-    private async void OnLoadAppleMusicPlaylists(object sender, EventArgs e)
+    private void OnLoadAppleMusicPlaylists(object sender, EventArgs e)
     {
-        await _viewModel.LoadPlaylistsCommand.Execute(MusicService.AppleMusic);
+        if (_viewModel.LoadPlaylistsCommand.CanExecute(MusicService.AppleMusic))
+            _viewModel.LoadPlaylistsCommand.Execute(MusicService.AppleMusic);
     }
 
-    private async void OnLoadYouTubeMusicPlaylists(object sender, EventArgs e)
+    private void OnLoadYouTubeMusicPlaylists(object sender, EventArgs e)
     {
-        await _viewModel.LoadPlaylistsCommand.Execute(MusicService.YouTubeMusic);
+        if (_viewModel.LoadPlaylistsCommand.CanExecute(MusicService.YouTubeMusic))
+            _viewModel.LoadPlaylistsCommand.Execute(MusicService.YouTubeMusic);
     }
 
     private void OnDestinationChanged(object sender, CheckedChangedEventArgs e)

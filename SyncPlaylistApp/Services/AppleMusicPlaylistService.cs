@@ -89,7 +89,7 @@ public class AppleMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Creating Apple Music playlist: {name}");
 
-        return $"apple_new_playlist_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        return $"apple_new_playlist_{Guid.NewGuid().ToString("N")[..8]}";
     }
 
     public async Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
@@ -114,7 +114,7 @@ public class AppleMusicPlaylistService : IPlaylistService
         // Simulate search
         return new Track
         {
-            Id = $"apple_found_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+            Id = $"apple_found_{Guid.NewGuid().ToString("N")[..8]}",
             Name = track.Name,
             Artist = track.Artist,
             Album = track.Album,

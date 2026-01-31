@@ -46,6 +46,9 @@ public class MainViewModel : INotifyPropertyChanged
         SignInYouTubeMusicCommand = new Command(async () => await SignInYouTubeMusic());
         LoadPlaylistsCommand = new Command<MusicService>(async (service) => await LoadPlaylists(service));
         SyncPlaylistCommand = new Command(async () => await SyncPlaylist(), () => CanSync());
+
+        // Subscribe to collection changes to update CanSync
+        DestinationServices.CollectionChanged += (s, e) => ((Command)SyncPlaylistCommand).ChangeCanExecute();
     }
 
     public bool IsSpotifyAuthenticated
@@ -79,8 +82,30 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     public ObservableCollection<Playlist> SourcePlaylists { get; } = new();
-    public MusicService SelectedSourceService { get; set; }
-    public Playlist? SelectedPlaylist { get; set; }
+    
+    private MusicService _selectedSourceService;
+    public MusicService SelectedSourceService
+    {
+        get => _selectedSourceService;
+        set
+        {
+            _selectedSourceService = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private Playlist? _selectedPlaylist;
+    public Playlist? SelectedPlaylist
+    {
+        get => _selectedPlaylist;
+        set
+        {
+            _selectedPlaylist = value;
+            OnPropertyChanged();
+            ((Command)SyncPlaylistCommand).ChangeCanExecute();
+        }
+    }
+    
     public ObservableCollection<MusicService> DestinationServices { get; } = new();
 
     public ICommand SignInSpotifyCommand { get; }

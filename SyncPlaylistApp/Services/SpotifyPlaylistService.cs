@@ -113,7 +113,7 @@ public class SpotifyPlaylistService : IPlaylistService
         // POST https://api.spotify.com/v1/users/{user_id}/playlists
         Debug.WriteLine($"Creating Spotify playlist: {name}");
 
-        return $"spotify_new_playlist_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        return $"spotify_new_playlist_{Guid.NewGuid().ToString("N")[..8]}";
     }
 
     public async Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
@@ -143,7 +143,7 @@ public class SpotifyPlaylistService : IPlaylistService
         // For demonstration, we'll assume tracks are found
         return new Track
         {
-            Id = $"spotify_found_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+            Id = $"spotify_found_{Guid.NewGuid().ToString("N")[..8]}",
             Name = track.Name,
             Artist = track.Artist,
             Album = track.Album,
