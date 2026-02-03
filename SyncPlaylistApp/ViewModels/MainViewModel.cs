@@ -72,7 +72,12 @@ public class MainViewModel : INotifyPropertyChanged
     public bool IsSyncing
     {
         get => _isSyncing;
-        set { _isSyncing = value; OnPropertyChanged(); }
+        set
+        {
+            _isSyncing = value;
+            OnPropertyChanged();
+            ((Command)SyncPlaylistCommand).ChangeCanExecute();
+        }
     }
 
     public string SyncStatus

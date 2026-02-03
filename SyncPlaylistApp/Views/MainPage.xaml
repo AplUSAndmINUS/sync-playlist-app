@@ -219,8 +219,7 @@
                     FontSize="18"
                     FontAttributes="Bold"
                     CornerRadius="8"
-                    Padding="20"
-                    IsEnabled="{Binding IsSyncing, Converter={StaticResource InvertedBoolConverter}}"/>
+                    Padding="20"/>
 
             <!-- Status -->
             <Frame BackgroundColor="#EEF2FF"
