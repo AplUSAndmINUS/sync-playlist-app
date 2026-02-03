@@ -82,7 +82,7 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     public ObservableCollection<Playlist> SourcePlaylists { get; } = new();
-    
+
     private MusicService _selectedSourceService;
     public MusicService SelectedSourceService
     {
@@ -105,7 +105,7 @@ public class MainViewModel : INotifyPropertyChanged
             ((Command)SyncPlaylistCommand).ChangeCanExecute();
         }
     }
-    
+
     public ObservableCollection<MusicService> DestinationServices { get; } = new();
 
     public ICommand SignInSpotifyCommand { get; }
@@ -217,18 +217,25 @@ public class MainViewModel : INotifyPropertyChanged
                 DestinationServices.ToList());
 
             // Build status message
-            var statusMessages = new List<string>();
-            foreach (var result in results)
+            if (results.Count == 0)
             {
-                var msg = $"{result.DestinationService}: {result.SuccessfulTracks}/{result.TotalTracks} tracks synced";
-                if (result.SkippedTracks > 0)
-                {
-                    msg += $", {result.SkippedTracks} skipped";
-                }
-                statusMessages.Add(msg);
+                SyncStatus = "No destinations to sync. Source service cannot be a destination.";
             }
+            else
+            {
+                var statusMessages = new List<string>();
+                foreach (var result in results)
+                {
+                    var msg = $"{result.DestinationService}: {result.SuccessfulTracks}/{result.TotalTracks} tracks synced";
+                    if (result.SkippedTracks > 0)
+                    {
+                        msg += $", {result.SkippedTracks} skipped";
+                    }
+                    statusMessages.Add(msg);
+                }
 
-            SyncStatus = string.Join("; ", statusMessages);
+                SyncStatus = string.Join("; ", statusMessages);
+            }
         }
         catch (Exception ex)
         {
