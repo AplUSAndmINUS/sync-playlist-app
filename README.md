@@ -1,13 +1,17 @@
 # Sync Playlist App
 
-A .NET 10 MAUI cross-platform application for syncing playlists across Spotify, Apple Music, and YouTube Music.
+A .NET 10 cross-platform application for syncing playlists across Spotify, Apple Music, and YouTube Music. Available as both a native MAUI app and a Blazor WebAssembly web application.
 
 ## Platform Support
 
+### Native App (.NET MAUI)
 - ✅ **Windows** - WinUI 3
 - ✅ **macOS** - Mac Catalyst  
 - ✅ **iOS** - Native iOS
 - ✅ **Android** - Native Android
+
+### Web App (Blazor WebAssembly)
+- ✅ **Any modern browser** - Chrome, Edge, Firefox, Safari
 
 ## Overview
 
@@ -17,10 +21,11 @@ This application allows users to:
 - Select a playlist from any supported service as the source
 - Sync that playlist to one or more destination services
 - Automatically skip songs that aren't found in the destination service
+- **NEW**: Access the full application from any browser without installation
 
 ## Getting Started
 
-See [SyncPlaylistApp/README.md](SyncPlaylistApp/README.md) for detailed setup, configuration, and build instructions.
+See [SETUP.md](SETUP.md) for detailed setup, configuration, and build instructions.
 
 ## Features
 
@@ -28,17 +33,30 @@ See [SyncPlaylistApp/README.md](SyncPlaylistApp/README.md) for detailed setup, c
 - **Cross-service playlist synchronization** - Sync playlists between any supported services
 - **Smart track matching** - Uses ISRC codes for accurate cross-platform matching
 - **Native UI** - WinUI 3 on Windows, native controls on other platforms
-- **Tailwind-inspired design** - Modern, clean interface
+- **Blazor WebAssembly UI** - Run the full app in your browser via WebAssembly
+- **Tailwind-inspired design** - Modern, clean interface with Bootstrap 5
 - **.NET 10** - Latest .NET framework with improved performance
+- **Shared Core Library** - 80%+ code reuse between native and web apps
 
 ## Technical Details
+
+### Solution Structure
+
+The solution consists of three projects:
+
+1. **SyncPlaylistApp** - .NET MAUI native app for mobile and desktop
+2. **SyncPlaylistApp.Core** - Shared business logic library (platform-agnostic)
+3. **SyncPlaylistApp.Web** - Blazor WebAssembly web app
 
 ### Built With
 
 - **.NET 10** - Latest framework version
-- **.NET MAUI** - Cross-platform UI framework
+- **.NET MAUI** - Cross-platform native UI framework
+- **Blazor WebAssembly** - Browser-based UI with WebAssembly runtime
 - **WinUI 3** - Modern Windows UI (when running on Windows)
+- **Bootstrap 5** - Modern responsive web UI framework
 - **MVVM Pattern** - Clean separation of concerns
+- **Dependency Injection** - Centralized service registration
 - **Dependency Injection** - Service-based architecture
 
 ### Minimum Requirements

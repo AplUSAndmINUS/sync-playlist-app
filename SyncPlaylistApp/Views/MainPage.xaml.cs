@@ -1,4 +1,4 @@
-using SyncPlaylistApp.Models;
+using SyncPlaylistApp.Core.Models;
 using SyncPlaylistApp.ViewModels;
 
 namespace SyncPlaylistApp.Views;
