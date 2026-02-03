@@ -217,6 +217,25 @@ The following platform files are included in the project:
 
 - `App.xaml.cs` uses `CreateWindow()` pattern (replaces deprecated `MainPage` setter)
 
+**Important .NET 10 Pattern Note:**
+
+If you need to access the MAUI window at runtime (e.g., to change the page), use:
+
+```csharp
+// ✅ Correct - MAUI Controls Application
+Microsoft.Maui.Controls.Application.Current.Windows[0].Page = newPage;
+
+// Or use an alias to avoid ambiguity:
+using MauiApp = Microsoft.Maui.Controls.Application;
+// Then:
+MauiApp.Current.Windows[0].Page = newPage;
+
+// ❌ Incorrect - This references Microsoft.UI.Xaml.Application (WinUI)
+// Application.Windows[0] // Won't compile - namespace ambiguity
+```
+
+On Windows, `Microsoft.UI.Xaml.Application` and `Microsoft.Maui.Controls.Application` can conflict. Always qualify with the full namespace or use an alias.
+
 ## Troubleshooting
 
 ### Build Errors

@@ -17,7 +17,7 @@ public class YouTubeMusicPlaylistService : IPlaylistService
         _authService = authService;
     }
 
-    public async Task<List<Playlist>> GetPlaylistsAsync()
+    public Task<List<Playlist>> GetPlaylistsAsync()
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -26,7 +26,7 @@ public class YouTubeMusicPlaylistService : IPlaylistService
         // In real implementation, would make API call to YouTube Data API
         Debug.WriteLine("Fetching YouTube Music playlists...");
 
-        return new List<Playlist>
+        return Task.FromResult(new List<Playlist>
         {
             new Playlist
             {
@@ -37,10 +37,10 @@ public class YouTubeMusicPlaylistService : IPlaylistService
                 TrackCount = 40,
                 Source = MusicService.YouTubeMusic
             }
-        };
+        });
     }
 
-    public async Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
+    public Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -48,7 +48,7 @@ public class YouTubeMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Fetching YouTube Music playlist details for {playlistId}...");
 
-        return new Playlist
+        return Task.FromResult(new Playlist
         {
             Id = playlistId,
             Name = "Discover Weekly Alternative",
@@ -77,10 +77,10 @@ public class YouTubeMusicPlaylistService : IPlaylistService
                     IsrcCode = "USRC11700001"
                 }
             }
-        };
+        });
     }
 
-    public async Task<string> CreatePlaylistAsync(string name, string description)
+    public Task<string> CreatePlaylistAsync(string name, string description)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -88,10 +88,10 @@ public class YouTubeMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Creating YouTube Music playlist: {name}");
 
-        return $"youtube_new_playlist_{Guid.NewGuid().ToString("N")[..8]}";
+        return Task.FromResult($"youtube_new_playlist_{Guid.NewGuid().ToString("N")[..8]}");
     }
 
-    public async Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
+    public Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -99,10 +99,10 @@ public class YouTubeMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Adding {tracks.Count} tracks to YouTube Music playlist {playlistId}");
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public async Task<Track?> SearchTrackAsync(Track track)
+    public Task<Track?> SearchTrackAsync(Track track)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -115,10 +115,10 @@ public class YouTubeMusicPlaylistService : IPlaylistService
         if (track.Name.Contains("Bohemian", StringComparison.OrdinalIgnoreCase))
         {
             Debug.WriteLine($"Track '{track.Name}' not found in YouTube Music");
-            return null; // Simulate track not found
+            return Task.FromResult<Track?>(null); // Simulate track not found
         }
 
-        return new Track
+        return Task.FromResult<Track?>(new Track
         {
             Id = $"youtube_found_{Guid.NewGuid().ToString("N")[..8]}",
             Name = track.Name,
@@ -126,6 +126,6 @@ public class YouTubeMusicPlaylistService : IPlaylistService
             Album = track.Album,
             DurationMs = track.DurationMs,
             IsrcCode = track.IsrcCode
-        };
+        });
     }
 }

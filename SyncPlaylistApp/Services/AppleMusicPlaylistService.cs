@@ -17,7 +17,7 @@ public class AppleMusicPlaylistService : IPlaylistService
         _authService = authService;
     }
 
-    public async Task<List<Playlist>> GetPlaylistsAsync()
+    public Task<List<Playlist>> GetPlaylistsAsync()
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -27,7 +27,7 @@ public class AppleMusicPlaylistService : IPlaylistService
         // GET https://api.music.apple.com/v1/me/library/playlists
         Debug.WriteLine("Fetching Apple Music playlists...");
 
-        return new List<Playlist>
+        return Task.FromResult(new List<Playlist>
         {
             new Playlist
             {
@@ -38,10 +38,10 @@ public class AppleMusicPlaylistService : IPlaylistService
                 TrackCount = 25,
                 Source = MusicService.AppleMusic
             }
-        };
+        });
     }
 
-    public async Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
+    public Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -49,7 +49,7 @@ public class AppleMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Fetching Apple Music playlist details for {playlistId}...");
 
-        return new Playlist
+        return Task.FromResult(new Playlist
         {
             Id = playlistId,
             Name = "Chill Vibes",
@@ -78,10 +78,10 @@ public class AppleMusicPlaylistService : IPlaylistService
                     IsrcCode = "USHR10958652"
                 }
             }
-        };
+        });
     }
 
-    public async Task<string> CreatePlaylistAsync(string name, string description)
+    public Task<string> CreatePlaylistAsync(string name, string description)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -89,10 +89,10 @@ public class AppleMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Creating Apple Music playlist: {name}");
 
-        return $"apple_new_playlist_{Guid.NewGuid().ToString("N")[..8]}";
+        return Task.FromResult($"apple_new_playlist_{Guid.NewGuid().ToString("N")[..8]}");
     }
 
-    public async Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
+    public Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -100,10 +100,10 @@ public class AppleMusicPlaylistService : IPlaylistService
 
         Debug.WriteLine($"Adding {tracks.Count} tracks to Apple Music playlist {playlistId}");
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public async Task<Track?> SearchTrackAsync(Track track)
+    public Task<Track?> SearchTrackAsync(Track track)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -112,7 +112,7 @@ public class AppleMusicPlaylistService : IPlaylistService
         Debug.WriteLine($"Searching for track in Apple Music: {track.Name} by {track.Artist}");
 
         // Simulate search
-        return new Track
+        return Task.FromResult<Track?>(new Track
         {
             Id = $"apple_found_{Guid.NewGuid().ToString("N")[..8]}",
             Name = track.Name,
@@ -120,6 +120,6 @@ public class AppleMusicPlaylistService : IPlaylistService
             Album = track.Album,
             DurationMs = track.DurationMs,
             IsrcCode = track.IsrcCode
-        };
+        });
     }
 }

@@ -17,7 +17,7 @@ public class SpotifyPlaylistService : IPlaylistService
         _authService = authService;
     }
 
-    public async Task<List<Playlist>> GetPlaylistsAsync()
+    public Task<List<Playlist>> GetPlaylistsAsync()
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -28,7 +28,7 @@ public class SpotifyPlaylistService : IPlaylistService
         Debug.WriteLine("Fetching Spotify playlists...");
 
         // Simulated data
-        return new List<Playlist>
+        return Task.FromResult(new List<Playlist>
         {
             new Playlist
             {
@@ -48,10 +48,10 @@ public class SpotifyPlaylistService : IPlaylistService
                 TrackCount = 30,
                 Source = MusicService.Spotify
             }
-        };
+        });
     }
 
-    public async Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
+    public Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -62,7 +62,7 @@ public class SpotifyPlaylistService : IPlaylistService
         Debug.WriteLine($"Fetching Spotify playlist details for {playlistId}...");
 
         // Simulated data
-        return new Playlist
+        return Task.FromResult(new Playlist
         {
             Id = playlistId,
             Name = "My Favorite Songs",
@@ -100,10 +100,10 @@ public class SpotifyPlaylistService : IPlaylistService
                     IsrcCode = "USEE10001993"
                 }
             }
-        };
+        });
     }
 
-    public async Task<string> CreatePlaylistAsync(string name, string description)
+    public Task<string> CreatePlaylistAsync(string name, string description)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -113,10 +113,10 @@ public class SpotifyPlaylistService : IPlaylistService
         // POST https://api.spotify.com/v1/users/{user_id}/playlists
         Debug.WriteLine($"Creating Spotify playlist: {name}");
 
-        return $"spotify_new_playlist_{Guid.NewGuid().ToString("N")[..8]}";
+        return Task.FromResult($"spotify_new_playlist_{Guid.NewGuid().ToString("N")[..8]}");
     }
 
-    public async Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
+    public Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -126,10 +126,10 @@ public class SpotifyPlaylistService : IPlaylistService
         // POST https://api.spotify.com/v1/playlists/{playlist_id}/tracks
         Debug.WriteLine($"Adding {tracks.Count} tracks to Spotify playlist {playlistId}");
 
-        return true;
+        return Task.FromResult(true);
     }
 
-    public async Task<Track?> SearchTrackAsync(Track track)
+    public Task<Track?> SearchTrackAsync(Track track)
     {
         var account = _authService.GetCurrentAccount();
         if (account == null || !account.IsAuthenticated)
@@ -141,7 +141,7 @@ public class SpotifyPlaylistService : IPlaylistService
 
         // Simulate search - in real app would search by ISRC first, then by name/artist
         // For demonstration, we'll assume tracks are found
-        return new Track
+        return Task.FromResult<Track?>(new Track
         {
             Id = $"spotify_found_{Guid.NewGuid().ToString("N")[..8]}",
             Name = track.Name,
@@ -149,6 +149,6 @@ public class SpotifyPlaylistService : IPlaylistService
             Album = track.Album,
             DurationMs = track.DurationMs,
             IsrcCode = track.IsrcCode
-        };
+        });
     }
 }
