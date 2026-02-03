@@ -8,7 +8,7 @@ namespace SyncPlaylistApp.ViewModels;
 /// <summary>
 /// MAUI-specific MainViewModel that extends Core with Command bindings for XAML
 /// </summary>
-public class MainViewModel : Core.ViewModels.MainViewModel
+public class MainViewModel : SyncPlaylistApp.Core.ViewModels.MainViewModel
 {
     public MainViewModel(
         SpotifyAuthService spotifyAuth,
