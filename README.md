@@ -65,3 +65,16 @@ The solution consists of three projects:
 - **Android**: API 21 (Android 5.0+)
 - **Windows**: Windows 10 build 17763+
 - **Development**: Xcode 26.2+ (for iOS/macOS builds)
+
+### AI Considerations & Transparency
+
+This app was created in conjunction with GitHub Copilot running Anthropic Claude Sonnet 4.5 runtime. 
+Code was validated at time of compilation by @AplUSAndmINUS with both Core and Web versions of the app.
+The app was created for knowledge purposes of understanding .NET Maui 10.0 for cross-compatibility and C# learning.
+
+### License and PR Terms
+
+This app remains open-source and can be reviewed at any point by those with suggested updates.
+Any requested updates to the app must be done with a user story (GitHub Issue) and attached PR denoting the changes.
+Any updates will be at the full discretion of @AplUSAndmINUS and @Copilot for these purposes through PR Review.
+This app remains under a GNU 3.0 license.
