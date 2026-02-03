@@ -98,9 +98,9 @@
 </div>
 
 @code {
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // Check existing authentication status
+        // Subscribe to property changes for reactive UI updates
         ViewModel.PropertyChanged += (s, e) => InvokeAsync(StateHasChanged);
     }
 
