@@ -22,6 +22,7 @@ If you already have Visual Studio installed, you can add the required workloads:
 4. Click "Modify" to install
 
 Alternatively, install via command line:
+
 ```powershell
 # Run as Administrator
 & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Community" --add Microsoft.VisualStudio.Workload.NetCrossPlat --add Microsoft.VisualStudio.Workload.Universal
@@ -29,13 +30,38 @@ Alternatively, install via command line:
 
 ### .NET SDK
 
-The project requires .NET 9.0 SDK or later. Check your version:
+The project requires .NET 10.0 SDK or later. Check your version:
 
 ```bash
 dotnet --version
 ```
 
 If you need to install or update, download from: https://dotnet.microsoft.com/download
+
+### Xcode (macOS/iOS builds only)
+
+For building macOS and iOS targets:
+
+- **Xcode 26.2 or later** is required
+- Ensure Xcode developer tools are properly configured:
+
+  ```bash
+  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+  sudo xcodebuild -license accept
+  sudo xcodebuild -runFirstLaunch
+  ```
+
+### .NET MAUI Workloads
+
+Install the required .NET MAUI workloads:
+
+```bash
+# Install all MAUI workloads
+sudo dotnet workload install maui
+
+# Or install specific platform workloads
+sudo dotnet workload install maui-android maui-ios maui-maccatalyst
+```
 
 ## API Credentials Setup
 
@@ -52,6 +78,7 @@ If you need to install or update, download from: https://dotnet.microsoft.com/do
    - **Client ID**
    - **Client Secret**
 6. Update `SyncPlaylistApp/Configuration/AppSettings.cs`:
+
    ```csharp
    public static string SpotifyClientId { get; set; } = "your_actual_client_id";
    public static string SpotifyClientSecret { get; set; } = "your_actual_client_secret";
@@ -79,6 +106,7 @@ If you need to install or update, download from: https://dotnet.microsoft.com/do
    - Use the private key, team ID, and key ID
    - Token expires after 6 months
 8. Update `SyncPlaylistApp/Configuration/AppSettings.cs`:
+
    ```csharp
    public static string AppleMusicDeveloperToken { get; set; } = "your_jwt_token";
    public static string AppleMusicTeamId { get; set; } = "your_team_id";
@@ -120,7 +148,7 @@ If you need to install or update, download from: https://dotnet.microsoft.com/do
 
 1. Open `SyncPlaylistApp.sln` in Visual Studio 2022
 2. Select the target platform:
-   - For Windows: Select "Windows Machine" and "net9.0-windows10.0.19041.0"
+   - For Windows: Select "Windows Machine" and "net10.0-windows10.0.19041.0"
 3. Build the solution:
    - Menu: Build → Build Solution (Ctrl+Shift+B)
 4. Run the application:
@@ -137,50 +165,101 @@ cd path\to\sync-playlist-app
 dotnet restore SyncPlaylistApp.sln
 
 # Build for Windows
-dotnet build SyncPlaylistApp.sln -f net9.0-windows10.0.19041.0 -c Release
+dotnet build SyncPlaylistApp.sln -f net10.0-windows10.0.19041.0 -c Release
 
 # Run the application
-dotnet run --project SyncPlaylistApp\SyncPlaylistApp.csproj -f net9.0-windows10.0.19041.0
+dotnet run --project SyncPlaylistApp\SyncPlaylistApp.csproj -f net10.0-windows10.0.19041.0
 ```
 
 ### Building for Other Platforms
 
 **Android:**
+
 ```bash
-dotnet build SyncPlaylistApp.sln -f net9.0-android -c Release
+dotnet build SyncPlaylistApp.sln -f net10.0-android -c Release
 ```
 
-**iOS:** (requires Mac)
+**iOS:** (requires Mac with Xcode 26.2+)
+
 ```bash
-dotnet build SyncPlaylistApp.sln -f net9.0-ios -c Release
+dotnet build SyncPlaylistApp.sln -f net10.0-ios -c Release
 ```
 
-**macOS:** (requires Mac)
+**macOS Catalyst:** (requires Mac with Xcode 26.2+)
+
 ```bash
-dotnet build SyncPlaylistApp.sln -f net9.0-maccatalyst -c Release
+dotnet build SyncPlaylistApp.sln -f net10.0-maccatalyst -c Release
 ```
+
+## .NET 10 Platform-Specific Files
+
+**.NET 10 MAUI requires explicit platform entry point files** (previously auto-generated in .NET 9).
+
+The following platform files are included in the project:
+
+**iOS & macOS Catalyst:**
+
+- `Platforms/iOS/Program.cs` - iOS entry point
+- `Platforms/iOS/AppDelegate.cs` - iOS app lifecycle
+- `Platforms/MacCatalyst/Program.cs` - macOS entry point  
+- `Platforms/MacCatalyst/AppDelegate.cs` - macOS app lifecycle
+
+**Android:**
+
+- `Platforms/Android/MainActivity.cs` - Android main activity
+- `Platforms/Android/MainApplication.cs` - Android app lifecycle
+
+**Windows:**
+
+- `Platforms/Windows/App.xaml.cs` - Windows entry point
+
+**Shared:**
+
+- `App.xaml.cs` uses `CreateWindow()` pattern (replaces deprecated `MainPage` setter)
 
 ## Troubleshooting
 
 ### Build Errors
 
 **"Workload 'maui' not found"**
+
 ```bash
-dotnet workload install maui
+sudo dotnet workload install maui
 ```
 
 **"Windows SDK not found"**
+
 - Install Windows 11 SDK via Visual Studio Installer or
 - Download from: https://developer.microsoft.com/windows/downloads/windows-sdk/
+
+**"Xcode version mismatch" (macOS/iOS builds)**
+
+- Ensure Xcode 26.2+ is installed
+- Update .NET workloads: `sudo dotnet workload update`
+- Switch to full Xcode: `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer`
+
+**"Missing Main entry point" or "Program not found"**
+
+- Verify platform-specific files exist in `Platforms/` folders
+- Clean and rebuild: `dotnet clean && dotnet build`
+
+**"SupportedOSPlatformVersion" error**
+
+- .NET 10 requires:
+  - iOS/macOS: 15.0+
+  - Android: 21.0+
+  - Windows: 10.0.17763.0+
 
 ### Runtime Errors
 
 **Authentication Fails**
+
 - Verify API credentials in `AppSettings.cs`
 - Check redirect URIs match exactly in all API consoles
 - Ensure URLs use the correct scheme (`syncplaylistapp://`)
 
 **"OAuth redirect URI mismatch"**
+
 - Double-check the redirect URI in each API console matches `syncplaylistapp://callback`
 
 ## Development Tips
@@ -188,12 +267,14 @@ dotnet workload install maui
 ### Hot Reload
 
 MAUI supports hot reload for XAML and C# changes:
+
 - Press Alt+F10 or click the Hot Reload button
 - Changes appear without restarting the app
 
 ### Debugging
 
 Set breakpoints in:
+
 - Authentication services to debug OAuth flow
 - Playlist services to debug API calls
 - Sync service to debug the synchronization logic
@@ -201,6 +282,7 @@ Set breakpoints in:
 ### Testing Without API Credentials
 
 The current implementation uses simulated authentication. You can test the UI flow without real credentials by:
+
 1. Running the app
 2. Clicking sign-in buttons (they'll use simulated tokens)
 3. Testing the playlist selection and sync UI
