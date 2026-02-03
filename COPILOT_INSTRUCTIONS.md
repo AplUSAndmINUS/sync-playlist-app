@@ -153,13 +153,20 @@ builder.Services.AddSyncPlaylistServices();
 
 ### Dependency Injection
 
-- All services are singletons/scoped, ViewModels are transient
+- All services are singletons/scoped, ViewModels are transient **by default in Core**
 - Use centralized `AddSyncPlaylistServices()` extension method
-- In MAUI, override Core MainViewModel registration with MAUI-specific version:
+- **Platform-specific override**: Both MAUI and Web apps override MainViewModel with Singleton to maintain state:
   ```csharp
-  builder.Services.AddSyncPlaylistServices();  // Registers Core MainViewModel
-  builder.Services.AddTransient<MainViewModel>();  // Overrides with MAUI version
+  // In MauiProgram.cs
+  builder.Services.AddSyncPlaylistServices();  // Registers Core MainViewModel as Transient
+  builder.Services.AddSingleton<MainViewModel>();  // Overrides with MAUI-specific Singleton
+  
+  // In Web/Program.cs
+  builder.Services.AddSyncPlaylistServices();  // Registers Core MainViewModel as Transient
+  builder.Services.AddSingleton<Core.ViewModels.MainViewModel>();  // Overrides with Singleton
   ```
+- **Why Singleton for Web?** Ensures authentication state persists across page navigation (Home → Sync)
+- **Why Singleton for MAUI?** Single instance for the app's lifetime, consistent with typical MVVM pattern
 
 ## Building and Running
 
