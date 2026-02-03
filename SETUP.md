@@ -144,7 +144,14 @@ sudo dotnet workload install maui-android maui-ios maui-maccatalyst
 
 ## Building the Application
 
-### Using Visual Studio
+The solution contains three projects:
+1. **SyncPlaylistApp** - .NET MAUI native app
+2. **SyncPlaylistApp.Core** - Shared business logic library
+3. **SyncPlaylistApp.Web** - Blazor WebAssembly web app
+
+### Building the MAUI Native App
+
+#### Using Visual Studio
 
 1. Open `SyncPlaylistApp.sln` in Visual Studio 2022
 2. Select the target platform:
@@ -190,6 +197,47 @@ dotnet build SyncPlaylistApp.sln -f net10.0-ios -c Release
 ```bash
 dotnet build SyncPlaylistApp.sln -f net10.0-maccatalyst -c Release
 ```
+
+### Building the Blazor WebAssembly Web App
+
+The Blazor WebAssembly app shares 80%+ of its code with the MAUI app via the `SyncPlaylistApp.Core` library.
+
+**Build:**
+
+```bash
+# Navigate to the solution directory
+cd path/to/sync-playlist-app
+
+# Build the web app
+dotnet build SyncPlaylistApp.Web/SyncPlaylistApp.Web.csproj -c Release
+```
+
+**Run Locally:**
+
+```bash
+# Run the web app (opens browser at http://localhost:5000)
+dotnet run --project SyncPlaylistApp.Web/SyncPlaylistApp.Web.csproj
+```
+
+**Publish for Deployment:**
+
+```bash
+# Publish to wwwroot folder for static hosting
+dotnet publish SyncPlaylistApp.Web/SyncPlaylistApp.Web.csproj -c Release -o publish
+
+# The published files in publish/wwwroot can be deployed to:
+# - Azure Static Web Apps
+# - GitHub Pages  
+# - Netlify
+# - Any static file hosting service
+```
+
+**Key Differences from MAUI:**
+
+- **No Commands**: Blazor uses direct method calls (@onclick="MethodName")
+- **Reactive UI**: Uses `StateHasChanged()` after property changes
+- **Bootstrap 5**: Uses Bootstrap CSS framework (loaded from CDN)
+- **Browser-only**: Runs entirely in browser via WebAssembly (no server needed after deployment)
 
 ## .NET 10 Platform-Specific Files
 

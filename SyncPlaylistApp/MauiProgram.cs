@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using SyncPlaylistApp.Services;
+using SyncPlaylistApp.Core;
 using SyncPlaylistApp.ViewModels;
 using SyncPlaylistApp.Views;
 
@@ -18,20 +18,11 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Register authentication services
-        builder.Services.AddSingleton<SpotifyAuthService>();
-        builder.Services.AddSingleton<AppleMusicAuthService>();
-        builder.Services.AddSingleton<YouTubeMusicAuthService>();
+        // Register Core services (auth, playlists, sync)
+        builder.Services.AddSyncPlaylistServices();
 
-        // Register playlist services
-        builder.Services.AddSingleton<SpotifyPlaylistService>();
-        builder.Services.AddSingleton<AppleMusicPlaylistService>();
-        builder.Services.AddSingleton<YouTubeMusicPlaylistService>();
-
-        // Register sync service
-        builder.Services.AddSingleton<PlaylistSyncService>();
-
-        // Register ViewModels
+        // Register MAUI-specific MainViewModel (with Command bindings)
+        // This overrides the Core MainViewModel registration
         builder.Services.AddSingleton<MainViewModel>();
 
         // Register Views

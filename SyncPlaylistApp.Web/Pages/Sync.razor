@@ -1,0 +1,163 @@
+@page "/sync"
+@using SyncPlaylistApp.Core.Models
+@using SyncPlaylistApp.Core.ViewModels
+@inject MainViewModel ViewModel
+
+<PageTitle>Sync Playlists</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3">Sync Playlists</h2>
+        <a href="/" class="btn btn-outline-secondary">Back to Home</a>
+    </div>
+
+    <!-- Source Service Selection -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">1. Select Source Service</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group w-100" role="group">
+                @if (ViewModel.IsSpotifyAuthenticated)
+                {
+                    <button class="btn btn-outline-success" @onclick="() => LoadPlaylists(MusicService.Spotify)">
+                        Load Spotify Playlists
+                    </button>
+                }
+                @if (ViewModel.IsAppleMusicAuthenticated)
+                {
+                    <button class="btn btn-outline-danger" @onclick="() => LoadPlaylists(MusicService.AppleMusic)">
+                        Load Apple Music Playlists
+                    </button>
+                }
+                @if (ViewModel.IsYouTubeMusicAuthenticated)
+                {
+                    <button class="btn btn-outline-danger" @onclick="() => LoadPlaylists(MusicService.YouTubeMusic)">
+                        Load YouTube Music Playlists
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Playlist Selection -->
+    @if (ViewModel.SourcePlaylists.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">2. Select Playlist to Sync</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                    @foreach (var playlist in ViewModel.SourcePlaylists)
+                    {
+                        <button class="list-group-item list-group-item-action @(ViewModel.SelectedPlaylist?.Id == playlist.Id ? "active" : "")"
+                                @onclick="() => SelectPlaylist(playlist)">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">@playlist.Name</h6>
+                                    <small>@playlist.Description</small>
+                                </div>
+                                <span class="badge bg-secondary">@playlist.TrackCount tracks</span>
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Destination Service Selection -->
+    @if (ViewModel.SelectedPlaylist != null)
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">3. Select Destination Service(s)</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="spotifyDest"
+                           disabled="@(!ViewModel.IsSpotifyAuthenticated || ViewModel.SelectedSourceService == MusicService.Spotify)"
+                           @onchange="@((e) => ToggleDestination(MusicService.Spotify, (bool)e.Value!))" />
+                    <label class="form-check-label" for="spotifyDest">
+                        Spotify @(!ViewModel.IsSpotifyAuthenticated ? "(Not signed in)" : ViewModel.SelectedSourceService == MusicService.Spotify ? "(Source)" : "")
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="appleMusicDest"
+                           disabled="@(!ViewModel.IsAppleMusicAuthenticated || ViewModel.SelectedSourceService == MusicService.AppleMusic)"
+                           @onchange="@((e) => ToggleDestination(MusicService.AppleMusic, (bool)e.Value!))" />
+                    <label class="form-check-label" for="appleMusicDest">
+                        Apple Music @(!ViewModel.IsAppleMusicAuthenticated ? "(Not signed in)" : ViewModel.SelectedSourceService == MusicService.AppleMusic ? "(Source)" : "")
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="youtubeMusicDest"
+                           disabled="@(!ViewModel.IsYouTubeMusicAuthenticated || ViewModel.SelectedSourceService == MusicService.YouTubeMusic)"
+                           @onchange="@((e) => ToggleDestination(MusicService.YouTubeMusic, (bool)e.Value!))" />
+                    <label class="form-check-label" for="youtubeMusicDest">
+                        YouTube Music @(!ViewModel.IsYouTubeMusicAuthenticated ? "(Not signed in)" : ViewModel.SelectedSourceService == MusicService.YouTubeMusic ? "(Source)" : "")
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sync Button -->
+        <div class="d-grid mb-4">
+            <button class="btn btn-primary btn-lg" disabled="@(!ViewModel.CanSync() || ViewModel.IsSyncing)" @onclick="SyncPlaylist">
+                @if (ViewModel.IsSyncing)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Syncing...</span>
+                }
+                else
+                {
+                    <span>Sync Playlist</span>
+                }
+            </button>
+        </div>
+    }
+
+    <!-- Status Message -->
+    @if (!string.IsNullOrWhiteSpace(ViewModel.SyncStatus))
+    {
+        <div class="alert alert-info">
+            @ViewModel.SyncStatus
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ViewModel.PropertyChanged += (s, e) => InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadPlaylists(MusicService service)
+    {
+        await ViewModel.LoadPlaylistsAsync(service);
+    }
+
+    private void SelectPlaylist(Playlist playlist)
+    {
+        ViewModel.SelectedPlaylist = playlist;
+    }
+
+    private void ToggleDestination(MusicService service, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!ViewModel.DestinationServices.Contains(service))
+                ViewModel.DestinationServices.Add(service);
+        }
+        else
+        {
+            ViewModel.DestinationServices.Remove(service);
+        }
+    }
+
+    private async Task SyncPlaylist()
+    {
+        await ViewModel.SyncPlaylistAsync();
+    }
+}

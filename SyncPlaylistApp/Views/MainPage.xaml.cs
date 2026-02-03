@@ -1,4 +1,4 @@
-using SyncPlaylistApp.Models;
+using SyncPlaylistApp.Core.Models;
 using SyncPlaylistApp.ViewModels;
 
 namespace SyncPlaylistApp.Views;
@@ -38,10 +38,10 @@ public partial class MainPage : ContentPage
 
         if (SpotifyDestCheck.IsChecked)
             _viewModel.DestinationServices.Add(MusicService.Spotify);
-        
+
         if (AppleMusicDestCheck.IsChecked)
             _viewModel.DestinationServices.Add(MusicService.AppleMusic);
-        
+
         if (YouTubeMusicDestCheck.IsChecked)
             _viewModel.DestinationServices.Add(MusicService.YouTubeMusic);
     }
