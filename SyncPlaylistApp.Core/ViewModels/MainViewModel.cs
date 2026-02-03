@@ -9,253 +9,253 @@ namespace SyncPlaylistApp.Core.ViewModels;
 
 public class MainViewModel : INotifyPropertyChanged
 {
-    private readonly SpotifyAuthService _spotifyAuth;
-    private readonly AppleMusicAuthService _appleMusicAuth;
-    private readonly YouTubeMusicAuthService _youtubeAuth;
-    private readonly SpotifyPlaylistService _spotifyPlaylist;
-    private readonly AppleMusicPlaylistService _appleMusicPlaylist;
-    private readonly YouTubeMusicPlaylistService _youtubePlaylist;
-    private readonly PlaylistSyncService _syncService;
+  private readonly SpotifyAuthService _spotifyAuth;
+  private readonly AppleMusicAuthService _appleMusicAuth;
+  private readonly YouTubeMusicAuthService _youtubeAuth;
+  private readonly SpotifyPlaylistService _spotifyPlaylist;
+  private readonly AppleMusicPlaylistService _appleMusicPlaylist;
+  private readonly YouTubeMusicPlaylistService _youtubePlaylist;
+  private readonly PlaylistSyncService _syncService;
 
-    private bool _isSpotifyAuthenticated;
-    private bool _isAppleMusicAuthenticated;
-    private bool _isYouTubeMusicAuthenticated;
-    private bool _isSyncing;
-    private string _syncStatus = string.Empty;
+  private bool _isSpotifyAuthenticated;
+  private bool _isAppleMusicAuthenticated;
+  private bool _isYouTubeMusicAuthenticated;
+  private bool _isSyncing;
+  private string _syncStatus = string.Empty;
 
-    public MainViewModel(
-        SpotifyAuthService spotifyAuth,
-        AppleMusicAuthService appleMusicAuth,
-        YouTubeMusicAuthService youtubeAuth,
-        SpotifyPlaylistService spotifyPlaylist,
-        AppleMusicPlaylistService appleMusicPlaylist,
-        YouTubeMusicPlaylistService youtubePlaylist,
-        PlaylistSyncService syncService)
+  public MainViewModel(
+      SpotifyAuthService spotifyAuth,
+      AppleMusicAuthService appleMusicAuth,
+      YouTubeMusicAuthService youtubeAuth,
+      SpotifyPlaylistService spotifyPlaylist,
+      AppleMusicPlaylistService appleMusicPlaylist,
+      YouTubeMusicPlaylistService youtubePlaylist,
+      PlaylistSyncService syncService)
+  {
+    _spotifyAuth = spotifyAuth;
+    _appleMusicAuth = appleMusicAuth;
+    _youtubeAuth = youtubeAuth;
+    _spotifyPlaylist = spotifyPlaylist;
+    _appleMusicPlaylist = appleMusicPlaylist;
+    _youtubePlaylist = youtubePlaylist;
+    _syncService = syncService;
+
+    // Initialize commands - will be implemented differently in MAUI vs Blazor
+    // MAUI uses Command, Blazor uses direct method calls
+  }
+
+  public bool IsSpotifyAuthenticated
+  {
+    get => _isSpotifyAuthenticated;
+    set { _isSpotifyAuthenticated = value; OnPropertyChanged(); }
+  }
+
+  public bool IsAppleMusicAuthenticated
+  {
+    get => _isAppleMusicAuthenticated;
+    set { _isAppleMusicAuthenticated = value; OnPropertyChanged(); }
+  }
+
+  public bool IsYouTubeMusicAuthenticated
+  {
+    get => _isYouTubeMusicAuthenticated;
+    set { _isYouTubeMusicAuthenticated = value; OnPropertyChanged(); }
+  }
+
+  public bool IsSyncing
+  {
+    get => _isSyncing;
+    set
     {
-        _spotifyAuth = spotifyAuth;
-        _appleMusicAuth = appleMusicAuth;
-        _youtubeAuth = youtubeAuth;
-        _spotifyPlaylist = spotifyPlaylist;
-        _appleMusicPlaylist = appleMusicPlaylist;
-        _youtubePlaylist = youtubePlaylist;
-        _syncService = syncService;
-
-        // Initialize commands - will be implemented differently in MAUI vs Blazor
-        // MAUI uses Command, Blazor uses direct method calls
+      _isSyncing = value;
+      OnPropertyChanged();
     }
+  }
 
-    public bool IsSpotifyAuthenticated
+  public string SyncStatus
+  {
+    get => _syncStatus;
+    set { _syncStatus = value; OnPropertyChanged(); }
+  }
+
+  public ObservableCollection<Playlist> SourcePlaylists { get; } = new();
+
+  private MusicService _selectedSourceService;
+  public MusicService SelectedSourceService
+  {
+    get => _selectedSourceService;
+    set
     {
-        get => _isSpotifyAuthenticated;
-        set { _isSpotifyAuthenticated = value; OnPropertyChanged(); }
+      _selectedSourceService = value;
+      OnPropertyChanged();
     }
+  }
 
-    public bool IsAppleMusicAuthenticated
+  private Playlist? _selectedPlaylist;
+  public Playlist? SelectedPlaylist
+  {
+    get => _selectedPlaylist;
+    set
     {
-        get => _isAppleMusicAuthenticated;
-        set { _isAppleMusicAuthenticated = value; OnPropertyChanged(); }
+      _selectedPlaylist = value;
+      OnPropertyChanged();
     }
+  }
 
-    public bool IsYouTubeMusicAuthenticated
+  public ObservableCollection<MusicService> DestinationServices { get; } = new();
+
+  // Core business logic methods (platform-agnostic)
+
+  public async Task SignInSpotifyAsync()
+  {
+    try
     {
-        get => _isYouTubeMusicAuthenticated;
-        set { _isYouTubeMusicAuthenticated = value; OnPropertyChanged(); }
+      await _spotifyAuth.AuthenticateAsync();
+      IsSpotifyAuthenticated = await _spotifyAuth.IsAuthenticatedAsync();
+      SyncStatus = "Spotify: Signed in successfully";
     }
-
-    public bool IsSyncing
+    catch (Exception ex)
     {
-        get => _isSyncing;
-        set
+      SyncStatus = $"Spotify sign-in failed: {ex.Message}";
+    }
+  }
+
+  public async Task SignInAppleMusicAsync()
+  {
+    try
+    {
+      await _appleMusicAuth.AuthenticateAsync();
+      IsAppleMusicAuthenticated = await _appleMusicAuth.IsAuthenticatedAsync();
+      SyncStatus = "Apple Music: Signed in successfully";
+    }
+    catch (Exception ex)
+    {
+      SyncStatus = $"Apple Music sign-in failed: {ex.Message}";
+    }
+  }
+
+  public async Task SignInYouTubeMusicAsync()
+  {
+    try
+    {
+      await _youtubeAuth.AuthenticateAsync();
+      IsYouTubeMusicAuthenticated = await _youtubeAuth.IsAuthenticatedAsync();
+      SyncStatus = "YouTube Music: Signed in successfully";
+    }
+    catch (Exception ex)
+    {
+      SyncStatus = $"YouTube Music sign-in failed: {ex.Message}";
+    }
+  }
+
+  public async Task LoadPlaylistsAsync(MusicService service)
+  {
+    try
+    {
+      SourcePlaylists.Clear();
+      SelectedPlaylist = null;
+      SelectedSourceService = service;
+
+      IPlaylistService? playlistService = service switch
+      {
+        MusicService.Spotify => _spotifyPlaylist,
+        MusicService.AppleMusic => _appleMusicPlaylist,
+        MusicService.YouTubeMusic => _youtubePlaylist,
+        _ => null
+      };
+
+      if (playlistService != null)
+      {
+        var playlists = await playlistService.GetPlaylistsAsync();
+        foreach (var playlist in playlists)
         {
-            _isSyncing = value;
-            OnPropertyChanged();
+          SourcePlaylists.Add(playlist);
         }
+        SyncStatus = $"Loaded {playlists.Count} playlists from {service}";
+      }
     }
-
-    public string SyncStatus
+    catch (Exception ex)
     {
-        get => _syncStatus;
-        set { _syncStatus = value; OnPropertyChanged(); }
+      SyncStatus = $"Failed to load playlists: {ex.Message}";
     }
+  }
 
-    public ObservableCollection<Playlist> SourcePlaylists { get; } = new();
+  public async Task SyncPlaylistAsync()
+  {
+    if (SelectedPlaylist == null || DestinationServices.Count == 0)
+      return;
 
-    private MusicService _selectedSourceService;
-    public MusicService SelectedSourceService
+    try
     {
-        get => _selectedSourceService;
-        set
-        {
-            _selectedSourceService = value;
-            OnPropertyChanged();
-        }
-    }
+      IsSyncing = true;
+      SyncStatus = "Syncing playlist...";
 
-    private Playlist? _selectedPlaylist;
-    public Playlist? SelectedPlaylist
-    {
-        get => _selectedPlaylist;
-        set
-        {
-            _selectedPlaylist = value;
-            OnPropertyChanged();
-        }
-    }
+      // Get full playlist details with tracks
+      IPlaylistService? sourceService = SelectedSourceService switch
+      {
+        MusicService.Spotify => _spotifyPlaylist,
+        MusicService.AppleMusic => _appleMusicPlaylist,
+        MusicService.YouTubeMusic => _youtubePlaylist,
+        _ => null
+      };
 
-    public ObservableCollection<MusicService> DestinationServices { get; } = new();
+      if (sourceService == null)
+        throw new InvalidOperationException("No source service selected");
 
-    // Core business logic methods (platform-agnostic)
+      var fullPlaylist = await sourceService.GetPlaylistDetailsAsync(SelectedPlaylist.Id);
 
-    public async Task SignInSpotifyAsync()
-    {
-        try
-        {
-            await _spotifyAuth.AuthenticateAsync();
-            IsSpotifyAuthenticated = await _spotifyAuth.IsAuthenticatedAsync();
-            SyncStatus = "Spotify: Signed in successfully";
-        }
-        catch (Exception ex)
-        {
-            SyncStatus = $"Spotify sign-in failed: {ex.Message}";
-        }
-    }
+      // Sync to all selected destination services
+      var results = await _syncService.SyncToMultipleServicesAsync(
+          fullPlaylist,
+          DestinationServices.ToList());
 
-    public async Task SignInAppleMusicAsync()
-    {
-        try
+      // Build status message
+      if (results.Count == 0)
+      {
+        SyncStatus = "No destinations to sync. Source service cannot be a destination.";
+      }
+      else
+      {
+        var statusMessages = new List<string>();
+        foreach (var result in results)
         {
-            await _appleMusicAuth.AuthenticateAsync();
-            IsAppleMusicAuthenticated = await _appleMusicAuth.IsAuthenticatedAsync();
-            SyncStatus = "Apple Music: Signed in successfully";
-        }
-        catch (Exception ex)
-        {
-            SyncStatus = $"Apple Music sign-in failed: {ex.Message}";
-        }
-    }
-
-    public async Task SignInYouTubeMusicAsync()
-    {
-        try
-        {
-            await _youtubeAuth.AuthenticateAsync();
-            IsYouTubeMusicAuthenticated = await _youtubeAuth.IsAuthenticatedAsync();
-            SyncStatus = "YouTube Music: Signed in successfully";
-        }
-        catch (Exception ex)
-        {
-            SyncStatus = $"YouTube Music sign-in failed: {ex.Message}";
-        }
-    }
-
-    public async Task LoadPlaylistsAsync(MusicService service)
-    {
-        try
-        {
-            SourcePlaylists.Clear();
-            SelectedPlaylist = null;
-            SelectedSourceService = service;
-
-            IPlaylistService? playlistService = service switch
+          if (!result.IsSuccess)
+          {
+            statusMessages.Add($"{result.DestinationService}: Failed - {result.ErrorMessage}");
+          }
+          else
+          {
+            var msg = $"{result.DestinationService}: {result.SuccessfulTracks}/{result.TotalTracks} tracks synced";
+            if (result.SkippedTracks > 0)
             {
-                MusicService.Spotify => _spotifyPlaylist,
-                MusicService.AppleMusic => _appleMusicPlaylist,
-                MusicService.YouTubeMusic => _youtubePlaylist,
-                _ => null
-            };
-
-            if (playlistService != null)
-            {
-                var playlists = await playlistService.GetPlaylistsAsync();
-                foreach (var playlist in playlists)
-                {
-                    SourcePlaylists.Add(playlist);
-                }
-                SyncStatus = $"Loaded {playlists.Count} playlists from {service}";
+              msg += $", {result.SkippedTracks} skipped";
             }
+            statusMessages.Add(msg);
+          }
         }
-        catch (Exception ex)
-        {
-            SyncStatus = $"Failed to load playlists: {ex.Message}";
-        }
-    }
 
-    public async Task SyncPlaylistAsync()
+        SyncStatus = string.Join("; ", statusMessages);
+      }
+    }
+    catch (Exception ex)
     {
-        if (SelectedPlaylist == null || DestinationServices.Count == 0)
-            return;
-
-        try
-        {
-            IsSyncing = true;
-            SyncStatus = "Syncing playlist...";
-
-            // Get full playlist details with tracks
-            IPlaylistService? sourceService = SelectedSourceService switch
-            {
-                MusicService.Spotify => _spotifyPlaylist,
-                MusicService.AppleMusic => _appleMusicPlaylist,
-                MusicService.YouTubeMusic => _youtubePlaylist,
-                _ => null
-            };
-
-            if (sourceService == null)
-                throw new InvalidOperationException("No source service selected");
-
-            var fullPlaylist = await sourceService.GetPlaylistDetailsAsync(SelectedPlaylist.Id);
-
-            // Sync to all selected destination services
-            var results = await _syncService.SyncToMultipleServicesAsync(
-                fullPlaylist,
-                DestinationServices.ToList());
-
-            // Build status message
-            if (results.Count == 0)
-            {
-                SyncStatus = "No destinations to sync. Source service cannot be a destination.";
-            }
-            else
-            {
-                var statusMessages = new List<string>();
-                foreach (var result in results)
-                {
-                    if (!result.IsSuccess)
-                    {
-                        statusMessages.Add($"{result.DestinationService}: Failed - {result.ErrorMessage}");
-                    }
-                    else
-                    {
-                        var msg = $"{result.DestinationService}: {result.SuccessfulTracks}/{result.TotalTracks} tracks synced";
-                        if (result.SkippedTracks > 0)
-                        {
-                            msg += $", {result.SkippedTracks} skipped";
-                        }
-                        statusMessages.Add(msg);
-                    }
-                }
-
-                SyncStatus = string.Join("; ", statusMessages);
-            }
-        }
-        catch (Exception ex)
-        {
-            SyncStatus = $"Sync failed: {ex.Message}";
-        }
-        finally
-        {
-            IsSyncing = false;
-        }
+      SyncStatus = $"Sync failed: {ex.Message}";
     }
-
-    public bool CanSync()
+    finally
     {
-        return SelectedPlaylist != null && DestinationServices.Count > 0 && !IsSyncing;
+      IsSyncing = false;
     }
+  }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
+  public bool CanSync()
+  {
+    return SelectedPlaylist != null && DestinationServices.Count > 0 && !IsSyncing;
+  }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+  public event PropertyChangedEventHandler? PropertyChanged;
+
+  protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+  {
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+  }
 }

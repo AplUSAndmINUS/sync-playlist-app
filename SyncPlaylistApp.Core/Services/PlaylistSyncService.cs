@@ -8,138 +8,138 @@ namespace SyncPlaylistApp.Core.Services;
 /// </summary>
 public class PlaylistSyncService
 {
-    private readonly Dictionary<MusicService, IPlaylistService> _playlistServices;
+  private readonly Dictionary<MusicService, IPlaylistService> _playlistServices;
 
-    public PlaylistSyncService(
-        SpotifyPlaylistService spotifyService,
-        AppleMusicPlaylistService appleMusicService,
-        YouTubeMusicPlaylistService youtubeService)
-    {
-        _playlistServices = new Dictionary<MusicService, IPlaylistService>
+  public PlaylistSyncService(
+      SpotifyPlaylistService spotifyService,
+      AppleMusicPlaylistService appleMusicService,
+      YouTubeMusicPlaylistService youtubeService)
+  {
+    _playlistServices = new Dictionary<MusicService, IPlaylistService>
         {
             { MusicService.Spotify, spotifyService },
             { MusicService.AppleMusic, appleMusicService },
             { MusicService.YouTubeMusic, youtubeService }
         };
-    }
+  }
 
-    public async Task<SyncResult> SyncPlaylistAsync(
-        Playlist sourcePlaylist,
-        MusicService destinationService,
-        string? destinationPlaylistId = null)
+  public async Task<SyncResult> SyncPlaylistAsync(
+      Playlist sourcePlaylist,
+      MusicService destinationService,
+      string? destinationPlaylistId = null)
+  {
+    var result = new SyncResult
     {
-        var result = new SyncResult
-        {
-            DestinationService = destinationService,
-            TotalTracks = sourcePlaylist.Tracks.Count
-        };
+      DestinationService = destinationService,
+      TotalTracks = sourcePlaylist.Tracks.Count
+    };
 
+    try
+    {
+      if (!_playlistServices.TryGetValue(destinationService, out var destService))
+      {
+        throw new InvalidOperationException($"No service available for {destinationService}");
+      }
+
+      // Create new playlist if no destination ID provided
+      if (string.IsNullOrEmpty(destinationPlaylistId))
+      {
+        var playlistName = $"{sourcePlaylist.Name} (from {sourcePlaylist.Source})";
+        var playlistDesc = $"Synced from {sourcePlaylist.Source}: {sourcePlaylist.Description}";
+        destinationPlaylistId = await destService.CreatePlaylistAsync(playlistName, playlistDesc);
+        Debug.WriteLine($"Created new playlist: {destinationPlaylistId}");
+      }
+
+      result.DestinationPlaylistId = destinationPlaylistId;
+
+      // Process each track
+      var tracksToAdd = new List<Track>();
+
+      // Note: For better performance with large playlists, consider:
+      // 1. Parallel searches: var tasks = sourcePlaylist.Tracks.Select(track => destService.SearchTrackAsync(track));
+      //    var results = await Task.WhenAll(tasks);
+      // 2. Batch API calls where the service supports it
+      // 3. Implement rate limiting to respect API quotas
+
+      foreach (var track in sourcePlaylist.Tracks)
+      {
         try
         {
-            if (!_playlistServices.TryGetValue(destinationService, out var destService))
-            {
-                throw new InvalidOperationException($"No service available for {destinationService}");
-            }
+          // Search for the track in the destination service
+          var foundTrack = await destService.SearchTrackAsync(track);
 
-            // Create new playlist if no destination ID provided
-            if (string.IsNullOrEmpty(destinationPlaylistId))
-            {
-                var playlistName = $"{sourcePlaylist.Name} (from {sourcePlaylist.Source})";
-                var playlistDesc = $"Synced from {sourcePlaylist.Source}: {sourcePlaylist.Description}";
-                destinationPlaylistId = await destService.CreatePlaylistAsync(playlistName, playlistDesc);
-                Debug.WriteLine($"Created new playlist: {destinationPlaylistId}");
-            }
-
-            result.DestinationPlaylistId = destinationPlaylistId;
-
-            // Process each track
-            var tracksToAdd = new List<Track>();
-
-            // Note: For better performance with large playlists, consider:
-            // 1. Parallel searches: var tasks = sourcePlaylist.Tracks.Select(track => destService.SearchTrackAsync(track));
-            //    var results = await Task.WhenAll(tasks);
-            // 2. Batch API calls where the service supports it
-            // 3. Implement rate limiting to respect API quotas
-
-            foreach (var track in sourcePlaylist.Tracks)
-            {
-                try
-                {
-                    // Search for the track in the destination service
-                    var foundTrack = await destService.SearchTrackAsync(track);
-
-                    if (foundTrack != null)
-                    {
-                        tracksToAdd.Add(foundTrack);
-                        result.SuccessfulTracks++;
-                        Debug.WriteLine($"Found track: {track.Name} by {track.Artist}");
-                    }
-                    else
-                    {
-                        // Track not found - skip it as per requirements
-                        result.SkippedTracks++;
-                        result.SkippedTrackNames.Add($"{track.Name} by {track.Artist}");
-                        Debug.WriteLine($"Skipping track (not found): {track.Name} by {track.Artist}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // If search fails, skip the track
-                    result.SkippedTracks++;
-                    result.SkippedTrackNames.Add($"{track.Name} by {track.Artist}");
-                    Debug.WriteLine($"Error searching for track '{track.Name}': {ex.Message}");
-                }
-            }
-
-            // Add all found tracks to the destination playlist
-            if (tracksToAdd.Count > 0)
-            {
-                await destService.AddTracksToPlaylistAsync(destinationPlaylistId, tracksToAdd);
-                Debug.WriteLine($"Added {tracksToAdd.Count} tracks to playlist {destinationPlaylistId}");
-            }
-
-            return result;
+          if (foundTrack != null)
+          {
+            tracksToAdd.Add(foundTrack);
+            result.SuccessfulTracks++;
+            Debug.WriteLine($"Found track: {track.Name} by {track.Artist}");
+          }
+          else
+          {
+            // Track not found - skip it as per requirements
+            result.SkippedTracks++;
+            result.SkippedTrackNames.Add($"{track.Name} by {track.Artist}");
+            Debug.WriteLine($"Skipping track (not found): {track.Name} by {track.Artist}");
+          }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Error syncing playlist: {ex.Message}");
-            throw;
+          // If search fails, skip the track
+          result.SkippedTracks++;
+          result.SkippedTrackNames.Add($"{track.Name} by {track.Artist}");
+          Debug.WriteLine($"Error searching for track '{track.Name}': {ex.Message}");
         }
-    }
+      }
 
-    public async Task<List<SyncResult>> SyncToMultipleServicesAsync(
-        Playlist sourcePlaylist,
-        List<MusicService> destinationServices)
+      // Add all found tracks to the destination playlist
+      if (tracksToAdd.Count > 0)
+      {
+        await destService.AddTracksToPlaylistAsync(destinationPlaylistId, tracksToAdd);
+        Debug.WriteLine($"Added {tracksToAdd.Count} tracks to playlist {destinationPlaylistId}");
+      }
+
+      return result;
+    }
+    catch (Exception ex)
     {
-        var results = new List<SyncResult>();
-
-        foreach (var destService in destinationServices)
-        {
-            if (destService == sourcePlaylist.Source)
-            {
-                Debug.WriteLine($"Skipping destination service {destService} as it's the source");
-                continue;
-            }
-
-            try
-            {
-                var result = await SyncPlaylistAsync(sourcePlaylist, destService);
-                results.Add(result);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to sync to {destService}: {ex.Message}");
-                // Return a failure result instead of swallowing the error
-                results.Add(new SyncResult
-                {
-                    DestinationService = destService,
-                    TotalTracks = sourcePlaylist.Tracks.Count,
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                });
-            }
-        }
-
-        return results;
+      Debug.WriteLine($"Error syncing playlist: {ex.Message}");
+      throw;
     }
+  }
+
+  public async Task<List<SyncResult>> SyncToMultipleServicesAsync(
+      Playlist sourcePlaylist,
+      List<MusicService> destinationServices)
+  {
+    var results = new List<SyncResult>();
+
+    foreach (var destService in destinationServices)
+    {
+      if (destService == sourcePlaylist.Source)
+      {
+        Debug.WriteLine($"Skipping destination service {destService} as it's the source");
+        continue;
+      }
+
+      try
+      {
+        var result = await SyncPlaylistAsync(sourcePlaylist, destService);
+        results.Add(result);
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Failed to sync to {destService}: {ex.Message}");
+        // Return a failure result instead of swallowing the error
+        results.Add(new SyncResult
+        {
+          DestinationService = destService,
+          TotalTracks = sourcePlaylist.Tracks.Count,
+          IsSuccess = false,
+          ErrorMessage = ex.Message
+        });
+      }
+    }
+
+    return results;
+  }
 }

@@ -8,26 +8,26 @@ namespace SyncPlaylistApp.Core.Services;
 /// </summary>
 public class AppleMusicPlaylistService : IPlaylistService
 {
-    private readonly AppleMusicAuthService _authService;
+  private readonly AppleMusicAuthService _authService;
 
-    public MusicService ServiceType => MusicService.AppleMusic;
+  public MusicService ServiceType => MusicService.AppleMusic;
 
-    public AppleMusicPlaylistService(AppleMusicAuthService authService)
-    {
-        _authService = authService;
-    }
+  public AppleMusicPlaylistService(AppleMusicAuthService authService)
+  {
+    _authService = authService;
+  }
 
-    public Task<List<Playlist>> GetPlaylistsAsync()
-    {
-        var account = _authService.GetCurrentAccount();
-        if (account == null || !account.IsAuthenticated)
-            throw new InvalidOperationException("User is not authenticated with Apple Music");
+  public Task<List<Playlist>> GetPlaylistsAsync()
+  {
+    var account = _authService.GetCurrentAccount();
+    if (account == null || !account.IsAuthenticated)
+      throw new InvalidOperationException("User is not authenticated with Apple Music");
 
-        // In real implementation, would make API call to Apple Music
-        // GET https://api.music.apple.com/v1/me/library/playlists
-        Debug.WriteLine("Fetching Apple Music playlists...");
+    // In real implementation, would make API call to Apple Music
+    // GET https://api.music.apple.com/v1/me/library/playlists
+    Debug.WriteLine("Fetching Apple Music playlists...");
 
-        return Task.FromResult(new List<Playlist>
+    return Task.FromResult(new List<Playlist>
         {
             new Playlist
             {
@@ -39,25 +39,25 @@ public class AppleMusicPlaylistService : IPlaylistService
                 Source = MusicService.AppleMusic
             }
         });
-    }
+  }
 
-    public Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
+  public Task<Playlist> GetPlaylistDetailsAsync(string playlistId)
+  {
+    var account = _authService.GetCurrentAccount();
+    if (account == null || !account.IsAuthenticated)
+      throw new InvalidOperationException("User is not authenticated with Apple Music");
+
+    Debug.WriteLine($"Fetching Apple Music playlist details for {playlistId}...");
+
+    return Task.FromResult(new Playlist
     {
-        var account = _authService.GetCurrentAccount();
-        if (account == null || !account.IsAuthenticated)
-            throw new InvalidOperationException("User is not authenticated with Apple Music");
-
-        Debug.WriteLine($"Fetching Apple Music playlist details for {playlistId}...");
-
-        return Task.FromResult(new Playlist
-        {
-            Id = playlistId,
-            Name = "Chill Vibes",
-            Description = "Relaxing music",
-            CoverImageUrl = "https://example.com/apple_cover1.jpg",
-            TrackCount = 2,
-            Source = MusicService.AppleMusic,
-            Tracks = new List<Track>
+      Id = playlistId,
+      Name = "Chill Vibes",
+      Description = "Relaxing music",
+      CoverImageUrl = "https://example.com/apple_cover1.jpg",
+      TrackCount = 2,
+      Source = MusicService.AppleMusic,
+      Tracks = new List<Track>
             {
                 new Track
                 {
@@ -78,48 +78,48 @@ public class AppleMusicPlaylistService : IPlaylistService
                     IsrcCode = "USHR10958652"
                 }
             }
-        });
-    }
+    });
+  }
 
-    public Task<string> CreatePlaylistAsync(string name, string description)
+  public Task<string> CreatePlaylistAsync(string name, string description)
+  {
+    var account = _authService.GetCurrentAccount();
+    if (account == null || !account.IsAuthenticated)
+      throw new InvalidOperationException("User is not authenticated with Apple Music");
+
+    Debug.WriteLine($"Creating Apple Music playlist: {name}");
+
+    return Task.FromResult($"apple_new_playlist_{Guid.NewGuid().ToString("N")[..8]}");
+  }
+
+  public Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
+  {
+    var account = _authService.GetCurrentAccount();
+    if (account == null || !account.IsAuthenticated)
+      throw new InvalidOperationException("User is not authenticated with Apple Music");
+
+    Debug.WriteLine($"Adding {tracks.Count} tracks to Apple Music playlist {playlistId}");
+
+    return Task.FromResult(true);
+  }
+
+  public Task<Track?> SearchTrackAsync(Track track)
+  {
+    var account = _authService.GetCurrentAccount();
+    if (account == null || !account.IsAuthenticated)
+      throw new InvalidOperationException("User is not authenticated with Apple Music");
+
+    Debug.WriteLine($"Searching for track in Apple Music: {track.Name} by {track.Artist}");
+
+    // Simulate search
+    return Task.FromResult<Track?>(new Track
     {
-        var account = _authService.GetCurrentAccount();
-        if (account == null || !account.IsAuthenticated)
-            throw new InvalidOperationException("User is not authenticated with Apple Music");
-
-        Debug.WriteLine($"Creating Apple Music playlist: {name}");
-
-        return Task.FromResult($"apple_new_playlist_{Guid.NewGuid().ToString("N")[..8]}");
-    }
-
-    public Task<bool> AddTracksToPlaylistAsync(string playlistId, List<Track> tracks)
-    {
-        var account = _authService.GetCurrentAccount();
-        if (account == null || !account.IsAuthenticated)
-            throw new InvalidOperationException("User is not authenticated with Apple Music");
-
-        Debug.WriteLine($"Adding {tracks.Count} tracks to Apple Music playlist {playlistId}");
-
-        return Task.FromResult(true);
-    }
-
-    public Task<Track?> SearchTrackAsync(Track track)
-    {
-        var account = _authService.GetCurrentAccount();
-        if (account == null || !account.IsAuthenticated)
-            throw new InvalidOperationException("User is not authenticated with Apple Music");
-
-        Debug.WriteLine($"Searching for track in Apple Music: {track.Name} by {track.Artist}");
-
-        // Simulate search
-        return Task.FromResult<Track?>(new Track
-        {
-            Id = $"apple_found_{Guid.NewGuid().ToString("N")[..8]}",
-            Name = track.Name,
-            Artist = track.Artist,
-            Album = track.Album,
-            DurationMs = track.DurationMs,
-            IsrcCode = track.IsrcCode
-        });
-    }
+      Id = $"apple_found_{Guid.NewGuid().ToString("N")[..8]}",
+      Name = track.Name,
+      Artist = track.Artist,
+      Album = track.Album,
+      DurationMs = track.DurationMs,
+      IsrcCode = track.IsrcCode
+    });
+  }
 }
