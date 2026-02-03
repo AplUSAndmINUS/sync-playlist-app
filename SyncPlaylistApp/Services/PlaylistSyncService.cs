@@ -54,20 +54,20 @@ public class PlaylistSyncService
 
             // Process each track
             var tracksToAdd = new List<Track>();
-            
+
             // Note: For better performance with large playlists, consider:
             // 1. Parallel searches: var tasks = sourcePlaylist.Tracks.Select(track => destService.SearchTrackAsync(track));
             //    var results = await Task.WhenAll(tasks);
             // 2. Batch API calls where the service supports it
             // 3. Implement rate limiting to respect API quotas
-            
+
             foreach (var track in sourcePlaylist.Tracks)
             {
                 try
                 {
                     // Search for the track in the destination service
                     var foundTrack = await destService.SearchTrackAsync(track);
-                    
+
                     if (foundTrack != null)
                     {
                         tracksToAdd.Add(foundTrack);
@@ -129,7 +129,14 @@ public class PlaylistSyncService
             catch (Exception ex)
             {
                 Debug.WriteLine($"Failed to sync to {destService}: {ex.Message}");
-                // Continue with other services
+                // Return a failure result instead of swallowing the error
+                results.Add(new SyncResult
+                {
+                    DestinationService = destService,
+                    TotalTracks = sourcePlaylist.Tracks.Count,
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                });
             }
         }
 

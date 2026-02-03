@@ -48,4 +48,6 @@ public class SyncResult
     public List<string> SkippedTrackNames { get; set; } = new();
     public string DestinationPlaylistId { get; set; } = string.Empty;
     public MusicService DestinationService { get; set; }
+    public bool IsSuccess { get; set; } = true;
+    public string? ErrorMessage { get; set; }
 }

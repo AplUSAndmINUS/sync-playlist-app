@@ -166,6 +166,7 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             SourcePlaylists.Clear();
+            SelectedPlaylist = null;
             SelectedSourceService = service;
 
             IPlaylistService? playlistService = service switch
@@ -231,12 +232,19 @@ public class MainViewModel : INotifyPropertyChanged
                 var statusMessages = new List<string>();
                 foreach (var result in results)
                 {
-                    var msg = $"{result.DestinationService}: {result.SuccessfulTracks}/{result.TotalTracks} tracks synced";
-                    if (result.SkippedTracks > 0)
+                    if (!result.IsSuccess)
                     {
-                        msg += $", {result.SkippedTracks} skipped";
+                        statusMessages.Add($"{result.DestinationService}: Failed - {result.ErrorMessage}");
                     }
-                    statusMessages.Add(msg);
+                    else
+                    {
+                        var msg = $"{result.DestinationService}: {result.SuccessfulTracks}/{result.TotalTracks} tracks synced";
+                        if (result.SkippedTracks > 0)
+                        {
+                            msg += $", {result.SkippedTracks} skipped";
+                        }
+                        statusMessages.Add(msg);
+                    }
                 }
 
                 SyncStatus = string.Join("; ", statusMessages);
